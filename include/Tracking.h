@@ -37,11 +37,13 @@
 #include "Initializer.h"
 #include "MapDrawer.h"
 #include "System.h"
-
+#include <iomanip>
 #include "IMU/imudata.h"
 #include "IMU/configparam.h"
 
 #include <mutex>
+#include <iomanip>
+
 
 namespace ORB_SLAM2
 {
@@ -102,6 +104,7 @@ public:
     // Use this function if you have deactivated local mapping and you only want to localize the camera.
     void InformOnlyTracking(const bool &flag);
 
+    int get_state();
 
 public:
 

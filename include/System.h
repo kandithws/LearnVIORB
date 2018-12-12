@@ -119,6 +119,8 @@ public:
     // SaveMap(const string &filename);
     // LoadMap(const string &filename);
 
+    int get_state();
+
 private:
 
     // Input sensor
@@ -156,6 +158,8 @@ private:
     std::thread* mptLocalMapping;
     std::thread* mptLoopClosing;
     std::thread* mptViewer;
+
+    std::thread* mptLocalMappingVIOInit;
 
     // Reset flag
     std::mutex mMutexReset;

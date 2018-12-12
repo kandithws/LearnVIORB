@@ -12,6 +12,8 @@ int ConfigParam::_LocalWindowSize = 10;
 double ConfigParam::_ImageDelayToIMU = 0;
 bool ConfigParam::_bAccMultiply9p8 = false;
 std::string ConfigParam::_tmpFilePath = "";
+double ConfigParam::_nVINSInitTime = 15;
+bool ConfigParam::_bRealTime = true;
 
 ConfigParam::ConfigParam(std::string configfile)
 {
@@ -19,7 +21,18 @@ ConfigParam::ConfigParam(std::string configfile)
 
     std::cout<<std::endl<<std::endl<<"Parameters: "<<std::endl;
 
+    //===========================================================
+    // ADDED by VILASINEE
+//    accelerometer_noise_density = fSettings["imu.accelerometer_noise_density"];
+//    accelerometer_random_walk = fSettings["imu.accelerometer_random_walk"];
+//    gyroscope_noise_density = fSettings["imu.gyroscope_noise_density"];
+//    gyroscope_random_walk = fSettings["imu.gyroscope_random_walk"];
+    //===========================================================
+
     _testDiscardTime = fSettings["test.DiscardTime"];
+    _nVINSInitTime = fSettings["test.VINSInitTime"];
+    std::cout<<"VINS initialize time: "<<_nVINSInitTime<<std::endl;
+    std::cout<<"Discart time in test data: "<<_testDiscardTime<<std::endl;
 
     fSettings["test.InitVIOTmpPath"] >> _tmpFilePath;
     std::cout<<"save tmp file in "<<_tmpFilePath<<std::endl;
@@ -72,6 +85,12 @@ ConfigParam::ConfigParam(std::string configfile)
         _bAccMultiply9p8 = (tmpBool != 0);
         std::cout<<"whether acc*9.8? 0/1: "<<_bAccMultiply9p8<<std::endl;
     }
+
+    {
+        int tmpBool = fSettings["test.RealTime"];
+        _bRealTime = (tmpBool != 0);
+        std::cout<<"whether run realtime? 0/1: "<<_bRealTime<<std::endl;
+    }
 }
 
 std::string ConfigParam::getTmpFilePath()
@@ -113,5 +132,14 @@ bool ConfigParam::GetAccMultiply9p8()
 {
     return _bAccMultiply9p8;
 }
+
+//static double GetAccelerometer_noise_density()
+//{ return accelerometer_noise_density; }
+//static double GetAccelerometer_random_walk()
+//{ return accelerometer_random_walk; }
+//static double GetGyroscope_noise_density()
+//{ return gyroscope_noise_density; }
+//static double GetGyroscope_random_walk()
+//{ return gyroscope_random_walk; }
 
 }

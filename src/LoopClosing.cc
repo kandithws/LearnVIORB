@@ -81,15 +81,19 @@ void LoopClosing::Run()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
+            cout << "get NewKeyFrames added from local mapping \n";
             // Detect loop candidates and check covisibility consistency
             if(DetectLoop())
             {
+                cout << "Loop detected needed to check for VINSinited and compute Sim3 \n";
                 if(mpLocalMapper->GetVINSInited())
                 {
+                    cout << "VINSInited = true \n";
                     // Compute similarity transformation [sR|t]
                     // In the stereo/RGBD case s=1
                     if(ComputeSim3())
                     {
+                        cout << "Pass VINSinited and Sim3 conditions start process correcting the loop \n";
                         // Perform loop fusion and pose graph optimization
                         CorrectLoop();
                     }
@@ -251,6 +255,7 @@ bool LoopClosing::DetectLoop()
 
 bool LoopClosing::ComputeSim3()
 {
+    cout << "Computing Sim3...\n";
     // For each consistent loop candidate we try to compute a Sim3
 
     const int nInitialCandidates = mvpEnoughConsistentCandidates.size();
@@ -269,14 +274,14 @@ bool LoopClosing::ComputeSim3()
     vbDiscarded.resize(nInitialCandidates);
 
     int nCandidates=0; //candidates with enough matches
-
+    cout << "nInitialCandidates is " << nInitialCandidates << endl;
     for(int i=0; i<nInitialCandidates; i++)
     {
         KeyFrame* pKF = mvpEnoughConsistentCandidates[i];
 
         // avoid that local mapping erase it while it is being processed in this thread
         pKF->SetNotErase();
-
+        cout << "pKF->isBad() is " << pKF->isBad() <<endl;
         if(pKF->isBad())
         {
             vbDiscarded[i] = true;
@@ -285,7 +290,8 @@ bool LoopClosing::ComputeSim3()
 
         int nmatches = matcher.SearchByBoW(mpCurrentKF,pKF,vvpMapPointMatches[i]);
 
-        if(nmatches<20)
+        cout << "nmatches is " << nmatches << endl;
+        if(nmatches<15) /*20*/
         {
             vbDiscarded[i] = true;
             continue;
@@ -296,7 +302,8 @@ bool LoopClosing::ComputeSim3()
             pSolver->SetRansacParameters(0.99,20,300);
             vpSim3Solvers[i] = pSolver;
         }
-
+        
+        // get more candidate when nmatches > 20 and KF is not bad
         nCandidates++;
     }
 
@@ -304,6 +311,7 @@ bool LoopClosing::ComputeSim3()
 
     // Perform alternatively RANSAC iterations for each candidate
     // until one is succesful or all fail
+    cout << "nCandidates is " << nCandidates <<endl;
     while(nCandidates>0 && !bMatch)
     {
         for(int i=0; i<nInitialCandidates; i++)
@@ -329,6 +337,7 @@ bool LoopClosing::ComputeSim3()
             }
 
             // If RANSAC returns a Sim3, perform a guided matching and optimize with all correspondences
+            cout << "Scm is " << Scm <<endl;
             if(!Scm.empty())
             {
                 vector<MapPoint*> vpMapPointMatches(vvpMapPointMatches[i].size(), static_cast<MapPoint*>(NULL));
@@ -347,6 +356,7 @@ bool LoopClosing::ComputeSim3()
                 const int nInliers = Optimizer::OptimizeSim3(mpCurrentKF, pKF, vpMapPointMatches, gScm, 10, mbFixScale);
 
                 // If optimization is succesful stop ransacs and continue
+                cout << "nInliers is " << nInliers <<endl;
                 if(nInliers>=20)
                 {
                     bMatch = true;
@@ -367,6 +377,7 @@ bool LoopClosing::ComputeSim3()
         for(int i=0; i<nInitialCandidates; i++)
              mvpEnoughConsistentCandidates[i]->SetErase();
         mpCurrentKF->SetErase();
+        cout <<" return false nInliers>=20 \n";
         return false;
     }
 
@@ -415,6 +426,7 @@ bool LoopClosing::ComputeSim3()
         for(int i=0; i<nInitialCandidates; i++)
             mvpEnoughConsistentCandidates[i]->SetErase();
         mpCurrentKF->SetErase();
+        cout << "return false nTotalMatches>=40 \n";
         return false;
     }
 
@@ -431,6 +443,7 @@ void LoopClosing::CorrectLoop()
     // If a Global Bundle Adjustment is running, abort it
     if(isRunningGBA())
     {
+        cout<<"Abort last global BA..."<<endl;
         unique_lock<mutex> lock(mMutexGBA);
         mbStopGBA = true;
 
@@ -441,6 +454,7 @@ void LoopClosing::CorrectLoop()
             mpThreadGBA->detach();
             delete mpThreadGBA;
         }
+        cout<<"Last global BA aborted."<<endl;
     }
 
     // Wait until Local Mapping has effectively stopped
@@ -668,11 +682,12 @@ void LoopClosing::ResetIfRequested()
 
 void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 {
+    std::chrono::steady_clock::time_point begin= std::chrono::steady_clock::now();
     cout << "Starting Global Bundle Adjustment" << endl;
 
     int idx =  mnFullBAIdx;
     //Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
-    Optimizer::GlobalBundleAdjustmentNavState(mpMap,mpLocalMapper->GetGravityVec(),10,&mbStopGBA,nLoopKF,false);
+    Optimizer::GlobalBundleAdjustmentNavStatePRV(mpMap,mpLocalMapper->GetGravityVec(),10,&mbStopGBA,nLoopKF,false);
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
@@ -789,6 +804,9 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
         mbFinishedGBA = true;
         mbRunningGBA = false;
     }
+
+    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+    std::cout << "globalBA Time consumption = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() <<std::endl;
 }
 
 void LoopClosing::RequestFinish()

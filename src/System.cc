@@ -152,12 +152,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
+    /*
     cout << endl <<
     "ORB-SLAM2 Copyright (C) 2014-2016 Raul Mur-Artal, University of Zaragoza." << endl <<
     "This program comes with ABSOLUTELY NO WARRANTY;" << endl  <<
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
-
+    */
     cout << "Input sensor was set to: ";
 
     if(mSensor==MONOCULAR)
@@ -169,8 +170,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Check settings file
     cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
-    if(!fsSettings.isOpened())
-    {
+    if(!fsSettings.isOpened()) {
        cerr << "Failed to open settings file at: " << strSettingsFile << endl;
        exit(-1);
     }
@@ -216,7 +216,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run,mpLocalMapper);
 
     //Initialize the Loop Closing thread and launch
-    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, /*mSensor!=MONOCULAR*/true,&config);
+    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, /*mSensor!=MONOCULAR*/false,&config);
     mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
 
     //Initialize the Viewer thread and launch
@@ -235,6 +235,12 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+    if(ConfigParam::GetRealTimeFlag())
+    {
+        //Thread for VINS initialization
+        mptLocalMappingVIOInit = new thread(&ORB_SLAM2::LocalMapping::VINSInitThread,mpLocalMapper);
+    }
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
@@ -392,6 +398,7 @@ void System::Reset()
 
 void System::Shutdown()
 {
+    cout<<"Shuting down SLAM ...\n";
     mpLocalMapper->RequestFinish();
     mpLoopCloser->RequestFinish();
     mpViewer->RequestFinish();
@@ -403,7 +410,7 @@ void System::Shutdown()
         usleep(5000);
     }
 
-    pangolin::BindToContext("ORB-SLAM2: Map Viewer");
+    //pangolin::BindToContext("ORB-SLAM2: Map Viewer");
 }
 
 void System::SaveTrajectoryTUM(const string &filename)
@@ -556,6 +563,10 @@ void System::SaveTrajectoryKITTI(const string &filename)
     }
     f.close();
     cout << endl << "trajectory saved!" << endl;
+}
+
+int System::get_state(){
+    return mpTracker->get_state();
 }
 
 } //namespace ORB_SLAM
