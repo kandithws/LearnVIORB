@@ -51,14 +51,14 @@ ${PROJECT_SOURCE_DIR}/../../../Thirdparty/g2o/lib/libg2o.so
 ${PROJECT_SOURCE_DIR}/../../../lib/libORB_SLAM2.so
 )
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
 # Node for monocular camera
-rosbuild_add_executable(VIO
-src/ros_vio.cc
-src/MsgSync/MsgSynchronizer.cpp
-src/MsgSync/MsgSynchronizer.h
+rosbuild_add_executable(detection_sample_node
+nodes/detection_sample_node.cpp
 )
 
-target_link_libraries(VIO
+target_link_libraries(detection_sample_node
 ${LIBS}
 )
 

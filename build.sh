@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #echo "Configuring and building Thirdparty/DBoW2 ..."
-
+#
 #cd Thirdparty/DBoW2
 #mkdir build
 #cd build
@@ -33,7 +34,14 @@ cd ..
 
 echo "Build ROS node ..."
 
-cd Examples/ROS/ORB_VIO
+#cd Examples/ROS/ORB_VIO
+#mkdir build
+#cd build
+#cmake .. -DROS_BUILD_TYPE=Release
+#make -j
+#cd ../../../../
+
+cd Examples/ROS/viorb_object_slam
 mkdir build
 cd build
 cmake .. -DROS_BUILD_TYPE=Release
