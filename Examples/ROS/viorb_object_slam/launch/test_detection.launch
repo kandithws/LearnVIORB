@@ -1,0 +1,7 @@
+<launch>
+    <node name="image_dir_streammer" pkg="viorb_object_slam" type="image_streamer_node.py">
+        <param name="img_dir" value="/home/kandithws/ait_workspace/thesis_ml_ws/ml_dataset/farm_full_ds2_cam1"/>
+        <param name="rate" value="30"/>
+        <param name="undistort" value="false"/>
+    </node>
+</launch>

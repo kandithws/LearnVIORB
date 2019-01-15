@@ -32,7 +32,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j
 cd ..
 
-echo "Build ROS node ..."
+#echo "Build ROS node ..."
 
 #cd Examples/ROS/ORB_VIO
 #mkdir build
@@ -41,12 +41,12 @@ echo "Build ROS node ..."
 #make -j
 #cd ../../../../
 
-cd Examples/ROS/viorb_object_slam
-mkdir build
-cd build
-cmake .. -DROS_BUILD_TYPE=Release
-make -j
-cd ../../../../
+#cd Examples/ROS/viorb_object_slam
+#mkdir build
+#cd build
+#cmake .. -DROS_BUILD_TYPE=Release
+#make -j
+#cd ../../../../
 
 #echo ""
 #echo "Launch file in Examples/ROS/ORB_VIO/launch."
