@@ -25,8 +25,9 @@ class CVObjectDetector : public BaseObjectDetector {
      * */
     void detectObject(cv::Mat& img, std::vector<PredictedObject>& preds, bool rgb=false);
     void setApplyNMS(bool st = true) { _apply_nms = st; }
-    void setConfidenceThershold(double val) { _conf_th = val; }
-    void setNMSThershold(double val) { _nms_th = val; }
+    void setConfidenceThreshold(double val) { _conf_th = val; }
+    void setNMSThreshold(double val) { _nms_th = val; }
+    void setInputSize(int input_width, int input_height=-1);
     int _input_width;
     int _input_height;
 

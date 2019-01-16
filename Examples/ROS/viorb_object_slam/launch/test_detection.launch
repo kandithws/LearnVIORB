@@ -1,7 +1,14 @@
 <launch>
     <node name="image_dir_streammer" pkg="viorb_object_slam" type="image_streamer_node.py">
-        <param name="img_dir" value="/home/kandithws/ait_workspace/thesis_ml_ws/ml_dataset/farm_full_ds2_cam1"/>
+        <param name="img_dir" value="$(env HOME)/ait_workspace/thesis_ml_ws/ml_dataset/farm_full_ds2_cam1"/>
         <param name="rate" value="30"/>
         <param name="undistort" value="false"/>
+    </node>
+
+    <node name="tree_detection_node" pkg="viorb_object_slam" type="detection_sample_node" output="screen">
+        <param name="model_path"
+               value="$(env HOME)/ait_workspace/thesis_ml_ws/models/darknet/tinyyolov3-1/yolov3-tiny-papertree_70000.weights"/>
+        <param name="config_path"
+               value="$(env HOME)/ait_workspace/thesis_ml_ws/thesis_ml_sandbox/darknet/cfg/yolov3-tiny-papertree.cfg"/>
     </node>
 </launch>

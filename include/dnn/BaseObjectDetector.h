@@ -31,13 +31,15 @@ class PredictedObject {
 class BaseObjectDetector {
   public:
 
-    void setLabelMap(std::vector<std::string>& label_map);
+    void setLabelMap(std::vector<std::string>& label_map) { _label_map = label_map; };
+    std::vector<std::string> const & getLabelMap() const { return _label_map;}
     virtual void detectObject(cv::Mat& img, std::vector<PredictedObject>& preds, bool rgb=false) = 0;
     void drawPredictionBoxes(cv::Mat& img, std::vector<PredictedObject>& preds);// box
+    void parseLabelMap(std::string path, char delim='\n');
     void drawPredictions(cv::Mat& img, std::vector<PredictedObject>& preds, bool draw_boxes=false);
 
   protected:
-    BaseObjectDetector(){}
+    BaseObjectDetector() = default;
     std::vector<std::string> _label_map; // class_id -> class_name
 };
 
