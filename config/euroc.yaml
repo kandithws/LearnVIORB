@@ -1,7 +1,7 @@
 %YAML:1.0
 
 # 1: realtime, 0: non-realtime
-test.RealTime: 1
+test.RealTime: 0
 # Time for visual-inertial initialization
 test.VINSInitTime: 15.0
 
@@ -17,7 +17,7 @@ test.DiscardTime: 0
 ## good: V1_01_easy, V2_01_easy, MH_01_easy, MH_02_easy, MH_03_medium, MH_04_difficult
 
 #test.DiscardTime: 18
-bagfile: "/home/kandithws/ait_workspace/euroc_rosbag/MH_01_easy.bag"
+bagfile: "/media/backup/EuRoc/MH_01_easy.bag"
 
 #######################################
 
