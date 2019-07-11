@@ -27,8 +27,9 @@
 #include <iomanip>
 #include <time.h>
 
-#include "IMU/configparam.h"
-
+//#include "IMU/configparam.h"
+#include "utils/Config.h"
+#include "spdlog/spdlog.h"
 
 bool has_suffix(const std::string &str, const std::string &suffix) {
     std::size_t index = str.find(suffix, str.size() - suffix.size());
@@ -140,6 +141,8 @@ cv::Mat System::TrackMonoVI(const cv::Mat &im, const std::vector<IMUData> &vimu,
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer) : mSensor(sensor), mbReset(false), mbActivateLocalizationMode(false),
                                         mbDeactivateLocalizationMode(false) {
+
+    InitLogger();
     // Output welcome message
     /*
     cout << endl <<
@@ -148,6 +151,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
     */
+
+    // Read global configuration
+    Config::getInstance().readConfig(strSettingsFile);
+
     cout << "Input sensor was set to: ";
 
     if (mSensor == MONOCULAR)
@@ -181,9 +188,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         exit(-1);
     }
     cout << "Vocabulary loaded!" << endl << endl;
-
-    ConfigParam config(strSettingsFile);
-
     //Create KeyFrame Database
     mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
@@ -197,14 +201,14 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                             mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, &config);
+                             mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
 
     //Initialize the Local Mapping thread and launch
-    mpLocalMapper = new LocalMapping(mpMap, mSensor == MONOCULAR, &config);
+    mpLocalMapper = new LocalMapping(mpMap, mSensor == MONOCULAR);
     mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
 
     //Initialize the Loop Closing thread and launch
-    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, /*mSensor!=MONOCULAR*/false, &config);
+    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, /*mSensor!=MONOCULAR*/false);
     mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
 
     //Initialize the Viewer thread and launch
@@ -224,7 +228,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
-    if (ConfigParam::GetRealTimeFlag()) {
+    if (Config::getInstance().SystemParams().real_time) {
         //Thread for VINS initialization
         mptLocalMappingVIOInit = new thread(&ORB_SLAM2::LocalMapping::VINSInitThread, mpLocalMapper);
     }
@@ -529,4 +533,21 @@ int System::get_state() {
     return mpTracker->get_state();
 }
 
+void System::InitLogger() {
+    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_pattern("%^[%E.%F][%l][%!:%@] %v%$");
+    /*
+     *  Multisink example to both screen and file
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    console_sink->set_level(spdlog::level::warn);
+    console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
+
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/multisink.txt", true);
+    file_sink->set_level(spdlog::level::trace);
+
+    std::shared_ptr<spdlog::logger> logger =
+        std::shared_ptr<spdlog::logger>(new spdlog::logger( "multi_sink", {console_sink, file_sink}));
+    spdlog::set_default_logger(logger);
+*/
+}
 } //namespace ORB_SLAM

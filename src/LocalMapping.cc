@@ -171,7 +171,7 @@ bool LocalMapping::TryInitVIO(void) {
 
     static bool fopened = false;
     static ofstream fgw, fscale, fbiasa, fcondnum, ftime, fbiasg;
-    string tmpfilepath = ConfigParam::getTmpFilePath();
+    string tmpfilepath = Config::getInstance().RuntimeParams().log_file_path;
     if (!fopened) {
         // Need to modify this to correct path
         fgw.open(tmpfilepath + "gw.txt");
@@ -198,13 +198,13 @@ bool LocalMapping::TryInitVIO(void) {
     Optimizer::GlobalBundleAdjustemnt(mpMap, 10);
 
     // Extrinsics
-    cv::Mat Tbc = ConfigParam::GetMatTbc();
+    cv::Mat Tbc = Config::getInstance().IMUParams().GetMatTbc();
     cv::Mat Rbc = Tbc.rowRange(0, 3).colRange(0, 3);
     cv::Mat pbc = Tbc.rowRange(0, 3).col(3);
     cv::Mat Rcb = Rbc.t();
     cv::Mat pcb = -Rcb * pbc;
 
-    if (ConfigParam::GetRealTimeFlag()) {
+    if (Config::getInstance().SystemParams().real_time) {
         // Wait KeyFrame Culling.
         // 1. if KeyFrame Culling is running, wait until finished.
         // 2. if KFs are being copied, then don't run KeyFrame Culling (in KeyFrameCulling function)
@@ -355,7 +355,7 @@ bool LocalMapping::TryInitVIO(void) {
     Eigen::Vector3d vhateig = Converter::toVector3d(vhat);
     Eigen::Matrix3d RWIeig = Sophus::SO3::exp(vhateig * theta).matrix();
     cv::Mat Rwi = Converter::toCvMat(RWIeig);
-    cv::Mat GI = gI * ConfigParam::GetG();//9.8012;
+    cv::Mat GI = gI * Config::getInstance().IMUParams().g;//9.8012;
     // Solve C*x=D for x=[s,dthetaxy,ba] (1+2+3)x1 vector
     cv::Mat C = cv::Mat::zeros(3 * (N - 2), 6, CV_32F);
     cv::Mat D = cv::Mat::zeros(3 * (N - 2), 1, CV_32F);
@@ -484,7 +484,7 @@ bool LocalMapping::TryInitVIO(void) {
         mbFirstTry = false;
         mnStartTime = mpCurrentKeyFrame->mTimeStamp;
     }
-    if (pNewestKF->mTimeStamp - mnStartTime >= ConfigParam::GetVINSInitTime()) {
+    if (pNewestKF->mTimeStamp - mnStartTime >= Config::getInstance().IMUParams().vins_init_time) {
         bVIOInited = true;
     }
 
@@ -502,7 +502,7 @@ bool LocalMapping::TryInitVIO(void) {
 
         // Update NavState for the KeyFrames not in vScaleGravityKF
         // Update Tcw-type pose for these KeyFrames, need mutex lock
-        if (ConfigParam::GetRealTimeFlag()) {
+        if (Config::getInstance().SystemParams().real_time) {
             // Stop local mapping
             RequestStop();
 
@@ -687,7 +687,7 @@ bool LocalMapping::TryInitVIO(void) {
         }
         SetUpdatingInitPoses(false);
 
-        if (ConfigParam::GetRealTimeFlag()) {
+        if (Config::getInstance().SystemParams().real_time) {
             Release();
         }
 
@@ -697,7 +697,7 @@ bool LocalMapping::TryInitVIO(void) {
         Optimizer::GlobalBundleAdjustmentNavStatePRV(mpMap, mGravityVec, 10, NULL, nGBAKF, false);
         cerr << "finish global BA after vins init" << endl;
 
-        if (ConfigParam::GetRealTimeFlag()) {
+        if (Config::getInstance().SystemParams().real_time) {
             // Update pose
             // Stop local mapping, and
             RequestStop();
@@ -708,7 +708,7 @@ bool LocalMapping::TryInitVIO(void) {
             }
 
 
-            cv::Mat cvTbc = ConfigParam::GetMatTbc();
+            cv::Mat cvTbc = Config::getInstance().IMUParams().GetMatTbc();
 
             {
                 unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
@@ -840,11 +840,10 @@ void LocalMapping::DeleteBadInLocalWindow(void) {
 //-------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------
 
-LocalMapping::LocalMapping(Map *pMap, const float bMonocular, ConfigParam *pParams) :
+LocalMapping::LocalMapping(Map *pMap, const float bMonocular) :
         mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
         mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true) {
-    mpParams = pParams;
-    mnLocalWindowSize = ConfigParam::GetLocalWindowSize();
+    mnLocalWindowSize = Config::getInstance().LocalMappingParams().window_size;
     cout << "mnLocalWindowSize:" << mnLocalWindowSize << endl;
 
     mbVINSInited = false;
@@ -905,7 +904,7 @@ void LocalMapping::Run() {
                 }
 
                 // Visual-Inertial initialization for non-realtime mode
-                if (!ConfigParam::GetRealTimeFlag()) {
+                if (!Config::getInstance().SystemParams().real_time) {
                     // Try to initialize VIO, if not inited
                     if (!GetVINSInited()) {
                         bool tmpbool = TryInitVIO();
@@ -1426,7 +1425,7 @@ void LocalMapping::InterruptBA() {
 
 void LocalMapping::KeyFrameCulling() {
 
-    if (ConfigParam::GetRealTimeFlag()) {
+    if (Config::getInstance().SystemParams().real_time) {
         if (GetFlagCopyInitKFs())
             return;
     }

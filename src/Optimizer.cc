@@ -34,7 +34,8 @@
 
 #include<mutex>
 
-#include "IMU/configparam.h"
+//#include "IMU/configparam.h"
+#include "utils/Config.h"
 #include "IMU/g2otypes.h"
 #include "Thirdparty/g2o/g2o/core/optimization_algorithm_gauss_newton.h"
 #include "Thirdparty/g2o/g2o/core/optimization_algorithm_with_hessian.h"
@@ -54,7 +55,7 @@ Optimizer::LocalBAPRVIDP(KeyFrame *pCurKF, const std::list<KeyFrame *> &lLocalKe
         cerr << "pCurKF != lLocalKeyFrames.back. check" << endl;
 
     // Extrinsics
-    Matrix4d Tcb = ConfigParam::GetEigT_cb();
+    Matrix4d Tcb = Config::getInstance().IMUParams().GetEigTcb();
     Matrix3d Rcb = Tcb.topLeftCorner(3, 3);
     Vector3d Pcb = Tcb.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -546,7 +547,7 @@ Optimizer::LocalBAPRVIDP(KeyFrame *pCurKF, const std::list<KeyFrame *> &lLocalKe
         //}
 
         // Update pose Tcw
-        pKFi->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+        pKFi->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
         // Test log
         if ((primaryns.Get_BiasGyr() - optPRns.Get_BiasGyr()).norm() > 1e-6 ||
@@ -610,7 +611,7 @@ void Optimizer::GlobalBundleAdjustmentNavStatePRV(Map *pMap, const cv::Mat &gw, 
     vector<MapPoint *> vpMP = pMap->GetAllMapPoints();
 
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -833,7 +834,7 @@ void Optimizer::GlobalBundleAdjustmentNavStatePRV(Map *pMap, const cv::Mat &gw, 
         if (nLoopKF == 0) {
             //pKF->SetPose(Converter::toCvMat(SE3quat));
             pKF->SetNavState(ns_recov);
-            pKF->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+            pKF->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
         } else {
             pKF->mNavStateGBA = ns_recov;
 
@@ -842,7 +843,7 @@ void Optimizer::GlobalBundleAdjustmentNavStatePRV(Map *pMap, const cv::Mat &gw, 
             cv::Mat Twb_ = cv::Mat::eye(4, 4, CV_32F);
             Converter::toCvMat(pKF->mNavStateGBA.Get_RotMatrix()).copyTo(Twb_.rowRange(0, 3).colRange(0, 3));
             Converter::toCvMat(pKF->mNavStateGBA.Get_P()).copyTo(Twb_.rowRange(0, 3).col(3));
-            cv::Mat Twc_ = Twb_ * ConfigParam::GetMatTbc();
+            cv::Mat Twc_ = Twb_ * Config::getInstance().IMUParams().GetMatTbc();
             pKF->mTcwGBA = Converter::toCvMatInverse(Twc_);
 
             pKF->mnBAGlobalForKF = nLoopKF;
@@ -881,7 +882,7 @@ void Optimizer::LocalBundleAdjustmentNavStatePRV(KeyFrame *pCurKF, const std::li
         cerr << "pCurKF != lLocalKeyFrames.back. check" << endl;
 
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -1334,7 +1335,7 @@ void Optimizer::LocalBundleAdjustmentNavStatePRV(KeyFrame *pCurKF, const std::li
         //}
 
         // Update pose Tcw
-        pKFi->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+        pKFi->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
         // Test log
         if ((primaryns.Get_BiasGyr() - optPRns.Get_BiasGyr()).norm() > 1e-6 ||
@@ -1368,7 +1369,7 @@ void Optimizer::GlobalBundleAdjustmentNavState(Map *pMap, const cv::Mat &gw, int
     vector<MapPoint *> vpMP = pMap->GetAllMapPoints();
 
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -1565,7 +1566,7 @@ void Optimizer::GlobalBundleAdjustmentNavState(Map *pMap, const cv::Mat &gw, int
         if (nLoopKF == 0) {
             //pKF->SetPose(Converter::toCvMat(SE3quat));
             pKF->SetNavState(ns_recov);
-            pKF->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+            pKF->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
         } else {
             pKF->mNavStateGBA = ns_recov;
 
@@ -1574,7 +1575,7 @@ void Optimizer::GlobalBundleAdjustmentNavState(Map *pMap, const cv::Mat &gw, int
             cv::Mat Twb_ = cv::Mat::eye(4, 4, CV_32F);
             Converter::toCvMat(pKF->mNavStateGBA.Get_RotMatrix()).copyTo(Twb_.rowRange(0, 3).colRange(0, 3));
             Converter::toCvMat(pKF->mNavStateGBA.Get_P()).copyTo(Twb_.rowRange(0, 3).col(3));
-            cv::Mat Twc_ = Twb_ * ConfigParam::GetMatTbc();
+            cv::Mat Twc_ = Twb_ * Config::getInstance().IMUParams().GetMatTbc();
             pKF->mTcwGBA = Converter::toCvMatInverse(Twc_);
 
             pKF->mnBAGlobalForKF = nLoopKF;
@@ -1614,7 +1615,7 @@ void Optimizer::GlobalBundleAdjustmentNavState(Map *pMap, const cv::Mat &gw, int
 int Optimizer::PoseOptimization(Frame *pFrame, Frame *pLastFrame, const IMUPreintegrator &imupreint, const cv::Mat &gw,
                                 const bool &bComputeMarg) {
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -1929,7 +1930,7 @@ int Optimizer::PoseOptimization(Frame *pFrame, Frame *pLastFrame, const IMUPrein
     ns_recov.Set_DeltaBiasGyr(nsBias_recov.Get_dBias_Gyr());
     ns_recov.Set_DeltaBiasAcc(nsBias_recov.Get_dBias_Acc());
     pFrame->SetNavState(ns_recov);
-    pFrame->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+    pFrame->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
     // Compute marginalized Hessian H and B, H*x=B, H/B can be used as prior for next optimization in PoseOptimization
     if (bComputeMarg) {
@@ -1978,7 +1979,7 @@ int Optimizer::PoseOptimization(Frame *pFrame, Frame *pLastFrame, const IMUPrein
 int Optimizer::PoseOptimization(Frame *pFrame, KeyFrame *pLastKF, const IMUPreintegrator &imupreint, const cv::Mat &gw,
                                 const bool &bComputeMarg) {
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -2198,7 +2199,7 @@ int Optimizer::PoseOptimization(Frame *pFrame, KeyFrame *pLastKF, const IMUPrein
     ns_recov.Set_DeltaBiasGyr(nsBias_recov.Get_dBias_Gyr());
     ns_recov.Set_DeltaBiasAcc(nsBias_recov.Get_dBias_Acc());
     pFrame->SetNavState(ns_recov);
-    pFrame->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+    pFrame->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
     // Compute marginalized Hessian H and B, H*x=B, H/B can be used as prior for next optimization in PoseOptimization
     if (bComputeMarg) {
@@ -2247,7 +2248,7 @@ void Optimizer::LocalBundleAdjustmentNavState(KeyFrame *pCurKF, const std::list<
         cerr << "pCurKF != lLocalKeyFrames.back. check" << endl;
 
     // Extrinsics
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rbc = Tbc.topLeftCorner(3, 3);
     Vector3d Pbc = Tbc.topRightCorner(3, 1);
     // Gravity vector in world frame
@@ -2656,7 +2657,7 @@ void Optimizer::LocalBundleAdjustmentNavState(KeyFrame *pCurKF, const std::list<
         //}
 
         // Update pose Tcw
-        pKFi->UpdatePoseFromNS(ConfigParam::GetMatTbc());
+        pKFi->UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
         // Test log
         if ((primaryns.Get_BiasGyr() - optPVRns.Get_BiasGyr()).norm() > 1e-6 ||
@@ -2692,7 +2693,7 @@ void Optimizer::LocalBundleAdjustmentNavState(KeyFrame *pCurKF, const std::list<
 
 Vector3d Optimizer::OptimizeInitialGyroBias(const std::vector<Frame> &vFrames) {
     //size_t N = vpKFs.size();
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rcb = Tbc.topLeftCorner(3, 3).transpose();
 
     // Setup optimizer
@@ -2758,7 +2759,7 @@ Vector3d Optimizer::OptimizeInitialGyroBias(const std::list<KeyFrame *> &lLocalK
 
 Vector3d Optimizer::OptimizeInitialGyroBias(const std::vector<KeyFrame *> &vpKFs) {
     //size_t N = vpKFs.size();
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rcb = Tbc.topLeftCorner(3, 3).transpose();
 
     // Setup optimizer
@@ -2827,7 +2828,7 @@ Vector3d Optimizer::OptimizeInitialGyroBias(const std::vector<KeyFrame *> &vpKFs
 Vector3d Optimizer::OptimizeInitialGyroBias(const vector<cv::Mat> &vTwc, const vector<IMUPreintegrator> &vImuPreInt) {
     int N = vTwc.size();
     if (vTwc.size() != vImuPreInt.size()) cerr << "vTwc.size()!=vImuPreInt.size()" << endl;
-    Matrix4d Tbc = ConfigParam::GetEigTbc();
+    Matrix4d Tbc = Config::getInstance().IMUParams().GetEigTbc();
     Matrix3d Rcb = Tbc.topLeftCorner(3, 3).transpose();
 
     // Setup optimizer
@@ -4116,7 +4117,7 @@ void Optimizer::OptimizeEssentialGraph(Map *pMap, KeyFrame *pLoopKF, KeyFrame *p
 
     unique_lock<mutex> lock(pMap->mMutexMapUpdate);
 
-    cv::Mat Tbc = ConfigParam::GetMatTbc();
+    cv::Mat Tbc = Config::getInstance().IMUParams().GetMatTbc();
 
     // SE3 Pose Recovering. Sim3:[sR t;0 1] -> SE3:[R t/s;0 1]
     for (size_t i = 0; i < vpKFs.size(); i++) {

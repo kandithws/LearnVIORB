@@ -22,7 +22,7 @@
 #ifndef TRACKING_H
 #define TRACKING_H
 
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
 
 #include"Viewer.h"
@@ -39,8 +39,9 @@
 #include "System.h"
 #include <iomanip>
 #include "IMU/imudata.h"
-#include "IMU/configparam.h"
-
+//#include "IMU/configparam.h"
+#include "spdlog/spdlog.h"
+#include "utils/Config.h"
 #include <mutex>
 #include <iomanip>
 
@@ -74,7 +75,6 @@ public:
     bool TrackWithIMU(bool bMapUpdated=false);
     bool TrackLocalMapWithIMU(bool bMapUpdated=false);
 
-    ConfigParam* mpParams;
     cv::Mat GrabImageMonoVI(const cv::Mat &im, const std::vector<IMUData> &vimu, const double &timestamp);
     // IMU Data since last KF. Append when new data is provided
     // Should be cleared in 1. initialization beginning, 2. new keyframe created.
@@ -85,7 +85,7 @@ public:
 
 public:
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, ConfigParam* pParams);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);

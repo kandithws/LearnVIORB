@@ -42,6 +42,16 @@ ${CHOLMOD_INCLUDE_DIR}
 )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+set(UTILS_SRC_FILES
+        src/utils/Config.cpp include/utils/Config.h
+        src/utils/matrix_utils.cpp
+
+        )
+set(IMU_SRC_FILES src/IMU/imudata.cpp
+        src/IMU/IMUPreintegrator.cpp
+        src/IMU/so3.cpp
+        src/IMU/NavState.cpp
+        src/IMU/g2otypes.cpp)
 
 add_library(${PROJECT_NAME} SHARED
 src/System.cc
@@ -63,17 +73,12 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
-
 include/Frame.h
 include/KeyFrame.h
 include/Tracking.h
 include/LocalMapping.h
-src/IMU/configparam.cpp
-src/IMU/imudata.cpp
-src/IMU/IMUPreintegrator.cpp
-src/IMU/so3.cpp
-src/IMU/NavState.cpp
-src/IMU/g2otypes.cpp
+        ${IMU_SRC_FILES}
+        ${UTILS_SRC_FILES}
 )
 
 target_link_libraries(${PROJECT_NAME}

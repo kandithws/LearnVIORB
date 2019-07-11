@@ -1,5 +1,5 @@
 #include "MsgSynchronizer.h"
-#include "../../../src/IMU/configparam.h"
+#include <utils/Config.h>
 
 namespace ORBVIO
 {
@@ -205,7 +205,7 @@ void MsgSynchronizer::addImageMsg(const sensor_msgs::ImageConstPtr &imgmsg)
 
     }
 
-    if(ORB_SLAM2::ConfigParam::GetRealTimeFlag())
+    if(ORB_SLAM2::Config::getInstance().SystemParams().real_time)
     {
         // Ignore earlier frames
         if(_imageMsgQueue.size()>2)

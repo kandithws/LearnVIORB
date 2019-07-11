@@ -33,7 +33,8 @@
 #include <mutex>
 #include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
 
-#include "IMU/configparam.h"
+#include "spdlog/spdlog.h"
+#include "utils/Config.h"
 
 namespace ORB_SLAM2
 {
@@ -46,7 +47,6 @@ class KeyFrameDatabase;
 class LoopClosing
 {
 public:
-    ConfigParam* mpParams;
 
     bool GetMapUpdateFlagForTracking();
     void SetMapUpdateFlagInTracking(bool bflag);
@@ -63,7 +63,7 @@ public:
 
 public:
 
-    LoopClosing(Map* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale, ConfigParam* pParams);
+    LoopClosing(Map* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
 
     void SetTracker(Tracking* pTracker);
 

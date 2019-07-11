@@ -29,8 +29,9 @@
 #include <iomanip>
 
 #include <mutex>
-#include "IMU/configparam.h"
-
+//#include "IMU/configparam.h"
+#include "spdlog/spdlog.h"
+#include "utils/Config.h"
 #include <iomanip>
 
 namespace ORB_SLAM2
@@ -43,8 +44,6 @@ class Map;
 class LocalMapping
 {
 public:
-    ConfigParam* mpParams;
-
     // KeyFrames in Local Window, for Local BA
     // Insert in ProcessNewKeyFrame()
     void AddToLocalWindow(KeyFrame* pKF);
@@ -104,7 +103,7 @@ protected:
     void SetFlagCopyInitKFs(bool flag) { unique_lock<mutex> lock(mMutexCopyInitKFs); mbCopyInitKFs = flag; }
 
 public:
-    LocalMapping(Map* pMap, const float bMonocular, ConfigParam* pParams);
+    LocalMapping(Map* pMap, const float bMonocular);
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 

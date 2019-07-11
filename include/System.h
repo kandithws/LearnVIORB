@@ -122,7 +122,7 @@ public:
     int get_state();
 
 private:
-
+    void InitLogger();
     // Input sensor
     eSensor mSensor;
 

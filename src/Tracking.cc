@@ -85,7 +85,7 @@ void Tracking::RecomputeIMUBiasAndCurrentNavstate(NavState &nscur) {
     cv::Mat A = cv::Mat::zeros(3 * (N - 2), 3, CV_32F);
     cv::Mat B = cv::Mat::zeros(3 * (N - 2), 1, CV_32F);
     const cv::Mat &gw = mpLocalMapper->GetGravityVec();
-    const cv::Mat &Tcb = ConfigParam::GetMatT_cb();
+    const cv::Mat &Tcb = Config::getInstance().IMUParams().GetMatTcb();
     for (int i = 0; i < N - 2; i++) {
         const Frame &F1 = mv20FramesReloc[i];
         const Frame &F2 = mv20FramesReloc[i + 1];
@@ -292,7 +292,7 @@ void Tracking::PredictNavStateByIMU(bool bMapUpdated) {
         // Get initial NavState&pose from Last KeyFrame
         mCurrentFrame.SetInitialNavStateAndBias(mpLastKeyFrame->GetNavState());
         mCurrentFrame.UpdateNavState(mIMUPreIntInTrack, Converter::toVector3d(mpLocalMapper->GetGravityVec()));
-        mCurrentFrame.UpdatePoseFromNS(ConfigParam::GetMatTbc());
+        mCurrentFrame.UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
         // Test log
         // Updated KF by Local Mapping. Should be the same as mpLastKeyFrame
@@ -309,7 +309,7 @@ void Tracking::PredictNavStateByIMU(bool bMapUpdated) {
         // Get initial pose from Last Frame
         mCurrentFrame.SetInitialNavStateAndBias(mLastFrame.GetNavState());
         mCurrentFrame.UpdateNavState(mIMUPreIntInTrack, Converter::toVector3d(mpLocalMapper->GetGravityVec()));
-        mCurrentFrame.UpdatePoseFromNS(ConfigParam::GetMatTbc());
+        mCurrentFrame.UpdatePoseFromNS(Config::getInstance().IMUParams().GetMatTbc());
 
         // Test log
         if (mCurrentFrame.GetNavState().Get_dBias_Acc().norm() > 1e-6)
@@ -475,14 +475,12 @@ cv::Mat Tracking::GrabImageMonoVI(const cv::Mat &im, const std::vector<IMUData> 
 //-------------------------------------------------------------------------------------------
 
 Tracking::Tracking(System *pSys, ORBVocabulary *pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer,
-                   Map *pMap, KeyFrameDatabase *pKFDB, const string &strSettingPath, const int sensor,
-                   ConfigParam *pParams) :
+                   Map *pMap, KeyFrameDatabase *pKFDB, const string &strSettingPath, const int sensor) :
         mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
         mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer *>(NULL)), mpSystem(pSys),
         mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0) {
     mbCreateNewKFAfterReloc = false;
     mbRelocBiasPrepare = false;
-    mpParams = pParams;
 
     // Load camera parameters from settings file
 
