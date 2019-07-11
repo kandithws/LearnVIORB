@@ -36,7 +36,6 @@ find_package(Cholmod REQUIRED)
 include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/include
-${PROJECT_SOURCE_DIR}/src
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 ${CHOLMOD_INCLUDE_DIR}
@@ -69,20 +68,11 @@ include/Frame.h
 include/KeyFrame.h
 include/Tracking.h
 include/LocalMapping.h
-
-src/IMU/configparam.h
 src/IMU/configparam.cpp
-
-src/IMU/imudata.h
 src/IMU/imudata.cpp
-src/IMU/IMUPreintegrator.h
 src/IMU/IMUPreintegrator.cpp
 src/IMU/so3.cpp
-src/IMU/so3.h
-src/IMU/NavState.h
 src/IMU/NavState.cpp
-
-src/IMU/g2otypes.h
 src/IMU/g2otypes.cpp
 )
 
